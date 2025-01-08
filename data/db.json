@@ -1,4 +1,24 @@
 {
+  "users": [
+    {
+      "username": 1,
+      "email": "user@gmail.com",
+      "password": 990,
+      "id": "ad74"
+    },
+    {
+      "id": "af06",
+      "username": 2,
+      "email": "ha@gmail.com",
+      "password": "12345"
+    },
+    {
+      "id": "761b",
+      "username": 3,
+      "email": "as@Yahoo.com",
+      "password": "12345"
+    }
+  ],
   "saleProducts": [
     {
       "id": 29,

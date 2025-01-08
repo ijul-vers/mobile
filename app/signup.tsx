@@ -1,12 +1,10 @@
-import { StyleSheet, Text, Touchable, View } from "react-native";
-import React from "react";
-import { Link, Stack, router } from "expo-router";
+import { StyleSheet, Text, View, Alert } from "react-native";
+import React, { useState } from "react";
+import { Link, router } from "expo-router";
 import {
   GestureHandlerRootView,
-  TextInput,
   TouchableOpacity,
 } from "react-native-gesture-handler";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import InputField from "@/component/InputField";
 import SocialMedia from "@/component/SocialMedia";
@@ -14,51 +12,114 @@ import SocialMedia from "@/component/SocialMedia";
 type Props = {};
 
 const SignUpScreen = (props: Props) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleSignUp = async () => {
+    if (!email || !password || !confirmPassword) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
+      return;
+    }
+
+    try {
+      // Fetch existing users
+      const response = await fetch("http://192.168.18.47:8000/users");
+      const users = await response.json();
+
+      // Check if email already exists
+      const userExists = users.find(
+        (u: { email: string }) => u.email === email
+      );
+      if (userExists) {
+        Alert.alert("Error", "Email already exists.");
+        return;
+      }
+
+      // Generate a new username based on the number of users
+      const newUsername = users.length + 1;
+
+      // Prepare new user data
+      const newUser = {
+        username: newUsername,
+        email,
+        password,
+      };
+
+      // Add new user to the database
+      const postResponse = await fetch("http://192.168.18.47:8000/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
+      });
+
+      if (!postResponse.ok) {
+        throw new Error("Failed to add user");
+      }
+
+      Alert.alert("Success", "Account created successfully!");
+      router.push("/signIn"); // Redirect to Sign In screen
+    } catch (error) {
+      // Handle unknown error type
+      if (error instanceof Error) {
+        console.error("Sign-up error:", error.message);
+        Alert.alert("Error", error.message);
+      } else {
+        console.error("Unknown error:", error);
+        Alert.alert("Error", "An unexpected error occurred.");
+      }
+    }
+  };
+
   return (
-    <>
-      {/* <Stack.Screen options={{headerTitle: 'Sign Up', headerLeft: ()=> (
-      <TouchableOpacity onPress={() => router.back()}>
-        <Ionicons name='close' size={24} color={Colors.black}/>
-    </TouchableOpacity>
-    )}} /> */}
-      <View style={styles.container}>
-        <Text style={styles.title}>Buat akun</Text>
-        <InputField
-          placeholder="Email"
-          placeholderTextColor={Colors.gray}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <InputField
-          placeholder="Password"
-          placeholderTextColor={Colors.gray}
-          autoCapitalize="none"
-          secureTextEntry={true}
-        />
-        <InputField
-          placeholder="Konfirmasi Password"
-          placeholderTextColor={Colors.gray}
-          autoCapitalize="none"
-          secureTextEntry={true}
-        />
-        <Link href={"/signIn"}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Buat Akun</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Buat Akun</Text>
+      <InputField
+        placeholder="Email"
+        placeholderTextColor={Colors.gray}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <InputField
+        placeholder="Password"
+        placeholderTextColor={Colors.gray}
+        autoCapitalize="none"
+        secureTextEntry={true}
+        value={password}
+        onChangeText={setPassword}
+      />
+      <InputField
+        placeholder="Konfirmasi Password"
+        placeholderTextColor={Colors.gray}
+        autoCapitalize="none"
+        secureTextEntry={true}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+      />
+      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+        <Text style={styles.buttonText}>Buat Akun</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.lgnText}>
+        Sudah punya akun?{" "}
+        <Link href={"/signIn"} asChild>
+          <TouchableOpacity>
+            <Text style={styles.lgnSpanText}>SignIn</Text>
           </TouchableOpacity>
         </Link>
-
-        <Text style={styles.lgnText}>
-          Sudah punya akun?{" "}
-          <Link href={"/signIn"} asChild>
-            <TouchableOpacity>
-              <Text style={styles.lgnSpanText}>SignIn</Text>
-            </TouchableOpacity>
-          </Link>
-        </Text>
-        <View style={styles.divider} />
-        <SocialMedia emailHref="/signIn" />
-      </View>
-    </>
+      </Text>
+      <View style={styles.divider} />
+      <SocialMedia emailHref="/signIn" />
+    </View>
   );
 };
 
@@ -106,7 +167,6 @@ const styles = StyleSheet.create({
   divider: {
     borderTopColor: Colors.gray,
     borderTopWidth: StyleSheet.hairlineWidth,
-    // marginTop:'10%',
     marginBottom: 20,
   },
 });

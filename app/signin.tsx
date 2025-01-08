@@ -1,58 +1,70 @@
-import { StyleSheet, Text, Touchable, View } from "react-native";
-import React from "react";
-import { Link } from "expo-router";
-import {
-  GestureHandlerRootView,
-  TextInput,
-  TouchableOpacity,
-} from "react-native-gesture-handler";
-import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, View, Alert } from "react-native";
+import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { Colors } from "@/constants/Colors";
 import InputField from "@/component/InputField";
 import SocialMedia from "@/component/SocialMedia";
 
-type Props = {};
+const SignInScreen = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter(); // Hook for navigation
 
-const SignInScreen = (props: Props) => {
+  const handleLogin = async () => {
+    try {
+      const response = await fetch("http://192.168.18.47:8000/users");
+      const users = await response.json();
+
+      const user = users.find(
+        (u: { email: string; password: string }) =>
+          u.email === email && u.password.toString() === password
+      );
+
+      if (user) {
+        // Navigate to the tab screen if login is successful
+        router.push("/(tabs)");
+      } else {
+        Alert.alert("Error", "Password Email salah.");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "An error occurred while trying to log in.");
+    }
+  };
+
   return (
-    <>
-      {/* <Stack.Screen options={{headerTitle: 'Sign Up', headerLeft: ()=> (
-      <TouchableOpacity onPress={() => router.back()}>
-        <Ionicons name='close' size={24} color={Colors.black}/>
-    </TouchableOpacity>
-    )}} /> */}
-      <View style={styles.container}>
-        <Text style={styles.title}>Masukan Akun</Text>
-        <InputField
-          placeholder="Email"
-          placeholderTextColor={Colors.gray}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <InputField
-          placeholder="Password"
-          placeholderTextColor={Colors.gray}
-          autoCapitalize="none"
-          secureTextEntry={true}
-        />
-        <Link href={"/(tabs)"}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Masuk Akun</Text>
-          </TouchableOpacity>
-        </Link>
+    <View style={styles.container}>
+      <Text style={styles.title}>Masukan Akun</Text>
+      <InputField
+        placeholder="Email"
+        placeholderTextColor={Colors.gray}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={(text) => setEmail(text)}
+      />
+      <InputField
+        placeholder="Password"
+        placeholderTextColor={Colors.gray}
+        autoCapitalize="none"
+        secureTextEntry={true}
+        value={password}
+        onChangeText={(text) => setPassword(text)}
+      />
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Masuk Akun</Text>
+      </TouchableOpacity>
 
-        <Text style={styles.lgnText}>
-          Belum Punya akun?{" "}
-          <Link href={"/signUp"} asChild>
-            <TouchableOpacity>
-              <Text style={styles.lgnSpanText}>SignUp</Text>
-            </TouchableOpacity>
-          </Link>
-        </Text>
-        <View style={styles.divider} />
-        <SocialMedia emailHref="/(tabs)/" />
-      </View>
-    </>
+      <Text style={styles.lgnText}>
+        Belum Punya akun?{" "}
+        <TouchableOpacity onPress={() => router.push("/signUp")}>
+          <Text style={styles.lgnSpanText}>SignUp</Text>
+        </TouchableOpacity>
+      </Text>
+      <View style={styles.divider} />
+      <SocialMedia emailHref="/(tabs)/" />
+    </View>
   );
 };
 
@@ -100,7 +112,6 @@ const styles = StyleSheet.create({
   divider: {
     borderTopColor: Colors.gray,
     borderTopWidth: StyleSheet.hairlineWidth,
-    // marginTop:'10%',
     marginBottom: 20,
   },
 });

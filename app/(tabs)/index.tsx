@@ -20,7 +20,7 @@ const HomeScreen = (props: Props) => {
     getProducts();
   }, []);
   const getCategories = async () => {
-    const URL = "http://192.168.1.5:8000/categories";
+    const URL = "http://192.168.18.47:8000/categories";
     const response = await axios
       .get(URL)
       .then((response) => {
@@ -36,7 +36,7 @@ const HomeScreen = (props: Props) => {
       });
   };
   const getProducts = async () => {
-    const URL = "http://192.168.1.5:8000/products";
+    const URL = "http://192.168.18.47:8000/products";
     const response = await axios
       .get(URL)
       .then((response) => {
